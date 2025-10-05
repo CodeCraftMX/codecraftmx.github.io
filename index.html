@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padel League Scoring Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 24px;
+            font-size: 28px;
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .framework-selector {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .framework-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .framework-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .player-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .player-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .player-rank {
+            background: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .player-name-input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            max-width: 100px;
+        }
+
+        .attendance-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #10b981;
+            border-radius: 13px;
+            transition: all 0.3s;
+        }
+
+        .switch.substitute {
+            background: #f59e0b;
+        }
+
+        .switch-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .switch.substitute .switch-slider {
+            left: 27px;
+        }
+
+        .attendance-label {
+            font-size: 11px;
+            font-weight: 500;
+            min-width: 65px;
+        }
+
+        .attendance-label.attending {
+            color: #10b981;
+        }
+
+        .attendance-label.substitute {
+            color: #f59e0b;
+        }
+
+        .scores-section {
+            background: #f5f7fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .set-score {
+            margin-bottom: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .set-header {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #555;
+        }
+
+        .pairing {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .pairing-label {
+            flex: 1;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .score-inputs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .score-input {
+            width: 50px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calculate-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .results {
+            margin-top: 32px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .result-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            background: white;
+        }
+
+        .result-card.winner {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .result-card.loser {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .result-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .result-placement {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .points-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .movement {
+            margin-top: 12px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .movement.up {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .movement.down {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .movement.none {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .warning {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .lang-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lang-btn.active {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .lang-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="language-switcher">
+            <button class="lang-btn" onclick="setLanguage('es')" id="lang-es">🇲🇽</button>
+            <button class="lang-btn" onclick="setLanguage('en')" id="lang-en">🇬🇧</button>
+        </div>
+        <h1 data-translate="title">🎾 Calculadora de Puntos de Liga de Pádel</h1>
+
+        <!-- Framework Selection -->
+        <div class="section">
+            <div class="section-title" data-translate="scoringFramework">Marco de Puntuación</div>
+            <div class="framework-selector">
+                <button class="framework-btn active" data-translate="normalBtn" onclick="selectFramework('normal')">Puntos Normales</button>
+                <button class="framework-btn" data-translate="balancedBtn" onclick="selectFramework('balanced')">Puntos Balanceados</button>
+            </div>
+            <div class="info" id="framework-info">
+                <strong>Puntos Normales:</strong> El ganador obtiene +diferencia de puntos, el perdedor obtiene -diferencia de puntos. Clasificaciones basadas en el total semanal.
+            </div>
+        </div>
+
+        <!-- Players Section -->
+        <div class="section">
+            <div class="section-title" data-translate="players">Jugadores (en orden de ranking 1-4)</div>
+            <div class="player-grid">
+                <div class="player-row">
+                    <div class="player-rank">1</div>
+                    <input type="text" class="player-name-input" id="player-a-name" placeholder="Player A" value="Player A" oninput="updatePairings(); clearResults();" onfocus="if(this.value === 'Player A') this.value = '';">
+                    <div class="attendance-switch" onclick="toggleAttendance('a')">
+                        <div class="switch" id="switch-a">
+                            <div class="switch-slider"></div>
+                        </div>
+                        <span class="attendance-label attending" id="label-a">Attending</span>
+                    </div>
+                </div>
+
+                <div class="player-row">
+                    <div class="player-rank">2</div>
+                    <input type="text" class="player-name-input" id="player-b-name" placeholder="Player B" value="Player B" oninput="updatePairings(); clearResults();" onfocus="if(this.value === 'Player B') this.value = '';">
+                    <div class="attendance-switch" onclick="toggleAttendance('b')">
+                        <div class="switch" id="switch-b">
+                            <div class="switch-slider"></div>
+                        </div>
+                        <span class="attendance-label attending" id="label-b">Attending</span>
+                    </div>
+                </div>
+
+                <div class="player-row">
+                    <div class="player-rank">3</div>
+                    <input type="text" class="player-name-input" id="player-c-name" placeholder="Player C" value="Player C" oninput="updatePairings(); clearResults();" onfocus="if(this.value === 'Player C') this.value = '';">
+                    <div class="attendance-switch" onclick="toggleAttendance('c')">
+                        <div class="switch" id="switch-c">
+                            <div class="switch-slider"></div>
+                        </div>
+                        <span class="attendance-label attending" id="label-c">Attending</span>
+                    </div>
+                </div>
+
+                <div class="player-row">
+                    <div class="player-rank">4</div>
+                    <input type="text" class="player-name-input" id="player-d-name" placeholder="Player D" value="Player D" oninput="updatePairings(); clearResults();" onfocus="if(this.value === 'Player D') this.value = '';">
+                    <div class="attendance-switch" onclick="toggleAttendance('d')">
+                        <div class="switch" id="switch-d">
+                            <div class="switch-slider"></div>
+                        </div>
+                        <span class="attendance-label attending" id="label-d">Attending</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scores Section -->
+        <div class="section">
+            <div class="section-title" data-translate="matchScores">Puntuaciones del Partido (3 Sets con Rotación)</div>
+            <div class="scores-section">
+                <div class="set-score">
+                    <div class="set-header" data-translate="set1">Set 1</div>
+                    <div class="pairing" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span id="set1-pair-a" style="font-weight: 500; text-align: right; font-size: 13px; flex-shrink: 1; min-width: 0;"></span>
+                        <input type="number" class="score-input" id="set1-a" min="0" max="7" value="0" style="width: 50px; flex-shrink: 0;" oninput="clearResults();" onfocus="this.select();">
+                        <span style="font-weight: 600; flex-shrink: 0;">vs</span>
+                        <input type="number" class="score-input" id="set1-b" min="0" max="7" value="0" style="width: 50px; flex-shrink: 0;" oninput="clearResults();" onfocus="this.select();">
+                        <span id="set1-pair-b" style="font-weight: 500; text-align: left; font-size: 13px; flex-shrink: 1; min-width: 0;"></span>
+                    </div>
+                    <div style="margin-top: 12px; text-align: center;">
+                        <button data-translate="penaltyBtn1" onclick="togglePenalties(1)" style="padding: 6px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">+ Agregar Penalizaciones Manuales</button>
+                    </div>
+                    <div id="set1-penalties" style="display: none; margin-top: 12px; font-size: 13px; color: #666;">
+                        <div id="set1-penalties-label" style="margin-bottom: 8px; font-weight: 500;">Manual Penalties:</div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set1-penalty-label-a">A</div>
+                                <input type="number" class="score-input" id="set1-penalty-a" style="width: 100%;" value="0">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set1-penalty-label-b">B</div>
+                                <input type="number" class="score-input" id="set1-penalty-b" style="width: 100%;" value="0">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set1-penalty-label-c">C</div>
+                                <input type="number" class="score-input" id="set1-penalty-c" style="width: 100%;" value="0">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set1-penalty-label-d">D</div>
+                                <input type="number" class="score-input" id="set1-penalty-d" style="width: 100%;" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="set-score">
+                    <div class="set-header" data-translate="set2">Set 2</div>
+                    <div class="pairing" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span id="set2-pair-a" style="font-weight: 500; text-align: right; font-size: 13px; flex-shrink: 1; min-width: 0;"></span>
+                        <input type="number" class="score-input" id="set2-a" min="0" max="7" value="0" style="width: 50px; flex-shrink: 0;" oninput="clearResults();" onfocus="this.select();">
+                        <span style="font-weight: 600; flex-shrink: 0;">vs</span>
+                        <input type="number" class="score-input" id="set2-b" min="0" max="7" value="0" style="width: 50px; flex-shrink: 0;" oninput="clearResults();" onfocus="this.select();">
+                        <span id="set2-pair-b" style="font-weight: 500; text-align: left; font-size: 13px; flex-shrink: 1; min-width: 0;"></span>
+                    </div>
+                    <div style="margin-top: 12px; text-align: center;">
+                        <button data-translate="penaltyBtn2" onclick="togglePenalties(2)" style="padding: 6px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">+ Agregar Penalizaciones Manuales</button>
+                    </div>
+                    <div id="set2-penalties" style="display: none; margin-top: 12px; font-size: 13px; color: #666;">
+                        <div id="set2-penalties-label" style="margin-bottom: 8px; font-weight: 500;">Manual Penalties:</div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set2-penalty-label-a">A</div>
+                                <input type="number" class="score-input" id="set2-penalty-a" style="width: 100%;" value="0">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set2-penalty-label-b">B</div>
+                                <input type="number" class="score-input" id="set2-penalty-b" style="width: 100%;" value="0">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set2-penalty-label-c">C</div>
+                                <input type="number" class="score-input" id="set2-penalty-c" style="width: 100%;" value="0">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set2-penalty-label-d">D</div>
+                                <input type="number" class="score-input" id="set2-penalty-d" style="width: 100%;" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="set-score">
+                    <div class="set-header" data-translate="set3">Set 3</div>
+                    <div class="pairing" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span id="set3-pair-a" style="font-weight: 500; text-align: right; font-size: 13px; flex-shrink: 1; min-width: 0;"></span>
+                        <input type="number" class="score-input" id="set3-a" min="0" max="7" value="0" style="width: 50px; flex-shrink: 0;" oninput="clearResults();" onfocus="this.select();">
+                        <span style="font-weight: 600; flex-shrink: 0;">vs</span>
+                        <input type="number" class="score-input" id="set3-b" min="0" max="7" value="0" style="width: 50px; flex-shrink: 0;" oninput="clearResults();" onfocus="this.select();">
+                        <span id="set3-pair-b" style="font-weight: 500; text-align: left; font-size: 13px; flex-shrink: 1; min-width: 0;"></span>
+                    </div>
+                    <div style="margin-top: 12px; text-align: center;">
+                        <button data-translate="penaltyBtn3" onclick="togglePenalties(3)" style="padding: 6px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">+ Agregar Penalizaciones Manuales</button>
+                    </div>
+                    <div id="set3-penalties" style="display: none; margin-top: 12px; font-size: 13px; color: #666;">
+                        <div id="set3-penalties-label" style="margin-bottom: 8px; font-weight: 500;">Manual Penalties:</div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set3-penalty-label-a">A</div>
+                                <input type="number" class="score-input" id="set3-penalty-a" style="width: 100%;" value="0">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set3-penalty-label-b">B</div>
+                                <input type="number" class="score-input" id="set3-penalty-b" style="width: 100%;" value="0">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set3-penalty-label-c">C</div>
+                                <input type="number" class="score-input" id="set3-penalty-c" style="width: 100%;" value="0">
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; margin-bottom: 4px; text-align: center;" id="set3-penalty-label-d">D</div>
+                                <input type="number" class="score-input" id="set3-penalty-d" style="width: 100%;" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="calculate-btn" data-translate="calculateBtn" onclick="calculateResults()">Calcular Resultados</button>
+
+        <div id="results-container"></div>
+    </div>
+
+    <script>
+        let currentLanguage = 'es'; // Default to Spanish
+        let framework = 'normal';
+        const attendance = {
+            a: 'attending',
+            b: 'attending',
+            c: 'attending',
+            d: 'attending'
+        };
+
+        const translations = {
+            es: {
+                title: '🎾 Calculadora de Puntos de Liga de Pádel',
+                scoringFramework: 'Marco de Puntuación',
+                normalPoints: 'Puntos Normales',
+                balancedPoints: 'Puntos Balanceados',
+                normalInfo: '<strong>Puntos Normales:</strong> El ganador obtiene +diferencia de puntos, el perdedor obtiene -diferencia de puntos. Clasificaciones basadas en el total semanal.',
+                balancedInfo: '<strong>Puntos Balanceados:</strong> 1º=3pts, 2º=2pts, 3º=1pt, 4º=0pts. Bonus barrida limpia: +1pt.',
+                players: 'Jugadores (en orden de ranking 1-4)',
+                playerBest: 'Jugador A',
+                playerB: 'Jugador B',
+                playerC: 'Jugador C',
+                playerWeakest: 'Jugador D',
+                attending: 'Asistiendo',
+                substitute: 'Sustituto',
+                matchScores: 'Puntuaciones del Partido (3 Sets con Rotación)',
+                set: 'Set',
+                vs: 'vs',
+                addPenalties: '+ Agregar Penalizaciones Manuales',
+                removePenalties: '- Quitar Penalizaciones Manuales',
+                manualPenalties: 'Penalizaciones Manuales:',
+                calculateResults: 'Calcular Resultados',
+                results: 'Resultados',
+                place: 'Lugar',
+                normalPointsLabel: 'Puntos Normales:',
+                penalty: 'Penalización:',
+                weekTotal: 'Total Semanal:',
+                balancedPointsLabel: 'Puntos Balanceados:',
+                setsWon: 'Sets Ganados:',
+                cleanSweepBonus: 'Bonus Barrida Limpia:',
+                noMovement: 'Sin Movimiento',
+                movingUp: 'Subiendo',
+                movingDown: 'Bajando',
+                warningTitle: '⚠️ Advertencia:',
+                onlyAttendee: 'Único asistente (3 sustitutos)',
+                usedSubstitute: 'Usó sustituto',
+                lowestRankSubs: 'Usó sustituto (rango más bajo entre',
+                subs: 'subs)',
+                weeklyBottom: 'Finalizó último de la semana',
+                weeklyWinner: 'Ganador semanal',
+                st: 'º',
+                nd: 'º',
+                rd: 'º',
+                th: 'º',
+                error66NotAllowed: '6-6 no está permitido',
+                error77NotAllowed: '7-7 no está permitido',
+                errorInvalidSevenScore: 'Para un marcador de 7, el otro equipo debe tener 5 o 6',
+                errorGamesBetween: 'Los juegos deben estar entre 0 y 7',
+                penaltySumWarning: 'Las penalizaciones del Set {set} suman {sum} (deberían sumar 0)',
+                set: 'Set',
+                substitutePenaltiesTitle: 'Penalizaciones por Sustituto',
+                substitutePenaltiesInfo: 'Asignar penalizaciones a los jugadores que usaron sustituto:',
+                applyPenalties: 'Aplicar Penalizaciones',
+                recalculate: 'Recalcular'
+            },
+            en: {
+                title: '🎾 Padel League Scoring Calculator',
+                scoringFramework: 'Scoring Framework',
+                normalPoints: 'Normal Points',
+                balancedPoints: 'Balanced Points',
+                normalInfo: '<strong>Normal Points:</strong> Winner gets +diff points, loser gets -diff points. Placements based on week total.',
+                balancedInfo: '<strong>Balanced Points:</strong> 1st=3pts, 2nd=2pts, 3rd=1pt, 4th=0pts. Clean sweep bonus: +1pt.',
+                players: 'Players (in ranking order 1-4)',
+                playerBest: 'Player A',
+                playerB: 'Player B',
+                playerC: 'Player C',
+                playerWeakest: 'Player D',
+                attending: 'Attending',
+                substitute: 'Substitute',
+                matchScores: 'Match Scores (3 Sets with Rotation)',
+                set: 'Set',
+                vs: 'vs',
+                addPenalties: '+ Add Manual Penalties',
+                removePenalties: '- Remove Manual Penalties',
+                manualPenalties: 'Manual Penalties:',
+                calculateResults: 'Calculate Results',
+                results: 'Results',
+                place: 'Place',
+                normalPointsLabel: 'Normal Points:',
+                penalty: 'Penalty:',
+                weekTotal: 'Week Total:',
+                balancedPointsLabel: 'Balanced Points:',
+                setsWon: 'Sets Won:',
+                cleanSweepBonus: 'Clean Sweep Bonus:',
+                noMovement: 'No Movement',
+                movingUp: 'Moving Up',
+                movingDown: 'Moving Down',
+                warningTitle: '⚠️ Warning:',
+                onlyAttendee: 'Only attendee (3 substitutes)',
+                usedSubstitute: 'Used substitute',
+                lowestRankSubs: 'Used substitute (lowest rank among',
+                subs: 'subs)',
+                weeklyBottom: 'Weekly bottom finish',
+                weeklyWinner: 'Weekly winner',
+                st: 'st',
+                nd: 'nd',
+                rd: 'rd',
+                th: 'th',
+                error66NotAllowed: '6-6 is not allowed',
+                error77NotAllowed: '7-7 is not allowed',
+                errorInvalidSevenScore: 'For a score of 7, the other team must have 5 or 6',
+                errorGamesBetween: 'Games must be between 0 and 7',
+                penaltySumWarning: 'Set {set} penalties sum to {sum} (should be 0)',
+                set: 'Set',
+                substitutePenaltiesTitle: 'Substitute Penalties',
+                substitutePenaltiesInfo: 'Assign penalties to players who used a substitute:',
+                applyPenalties: 'Apply Penalties',
+                recalculate: 'Recalculate'
+            }
+        };
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+
+            // Update active button
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`lang-${lang}`).classList.add('active');
+
+            // Update all translated elements
+            document.querySelector('h1').textContent = translations[lang].title;
+            document.querySelector('[data-translate="scoringFramework"]').textContent = translations[lang].scoringFramework;
+            document.querySelector('[data-translate="normalBtn"]').textContent = translations[lang].normalPoints;
+            document.querySelector('[data-translate="balancedBtn"]').textContent = translations[lang].balancedPoints;
+
+            // Update framework info
+            const info = document.getElementById('framework-info');
+            if (framework === 'normal') {
+                info.innerHTML = translations[lang].normalInfo;
+            } else {
+                info.innerHTML = translations[lang].balancedInfo;
+            }
+
+            document.querySelector('[data-translate="players"]').textContent = translations[lang].players;
+            document.querySelector('[data-translate="matchScores"]').textContent = translations[lang].matchScores;
+            document.querySelector('[data-translate="calculateBtn"]').textContent = translations[lang].calculateResults;
+
+            // Update set headers
+            for (let i = 1; i <= 3; i++) {
+                document.querySelector(`[data-translate="set${i}"]`).textContent = `${translations[lang].set} ${i}`;
+            }
+
+            // Update penalty button texts
+            document.querySelectorAll('[data-translate^="penaltyBtn"]').forEach(btn => {
+                if (btn.textContent.includes('-') || btn.textContent.includes('Quitar') || btn.textContent.includes('Remove')) {
+                    btn.textContent = translations[lang].removePenalties;
+                } else {
+                    btn.textContent = translations[lang].addPenalties;
+                }
+            });
+
+            // Update manual penalties labels
+            for (let i = 1; i <= 3; i++) {
+                const label = document.getElementById(`set${i}-penalties-label`);
+                if (label) {
+                    label.textContent = translations[lang].manualPenalties;
+                }
+            }
+
+            // Update attendance labels
+            document.querySelectorAll('.attendance-label').forEach(label => {
+                if (label.classList.contains('attending')) {
+                    label.textContent = translations[lang].attending;
+                } else {
+                    label.textContent = translations[lang].substitute;
+                }
+            });
+
+            // Save language preference
+            localStorage.setItem('padelLanguage', lang);
+        }
+
+        // Load data from local storage on page load
+        function loadFromStorage() {
+            const saved = localStorage.getItem('padelCalculatorData');
+            console.log('Loading from storage:', saved);
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    console.log('Parsed data:', data);
+
+                    // Restore framework
+                    if (data.framework) {
+                        framework = data.framework;
+                        document.querySelectorAll('.framework-btn').forEach(btn => btn.classList.remove('active'));
+                        const activeBtn = framework === 'normal' ? 0 : 1;
+                        document.querySelectorAll('.framework-btn')[activeBtn].classList.add('active');
+
+                        // Update info text
+                        const info = document.getElementById('framework-info');
+                        if (framework === 'normal') {
+                            info.innerHTML = '<strong>Normal Points:</strong> Winner gets +diff points, loser gets -diff points. Placements based on week total.';
+                        } else {
+                            info.innerHTML = '<strong>Balanced Points:</strong> 1st=3pts, 2nd=2pts, 3rd=1pt, 4th=0pts. Clean sweep bonus: +1pt.';
+                        }
+                    }
+
+                    // Restore player names
+                    if (data.players) {
+                        ['a', 'b', 'c', 'd'].forEach(player => {
+                            if (data.players[player]) {
+                                document.getElementById(`player-${player}-name`).value = data.players[player];
+                            }
+                        });
+                    }
+
+                    // Restore attendance
+                    if (data.attendance) {
+                        ['a', 'b', 'c', 'd'].forEach(player => {
+                            if (data.attendance[player]) {
+                                attendance[player] = data.attendance[player];
+                                const switchElem = document.getElementById(`switch-${player}`);
+                                const label = document.getElementById(`label-${player}`);
+
+                                if (data.attendance[player] === 'substitute') {
+                                    switchElem.classList.add('substitute');
+                                    label.classList.remove('attending');
+                                    label.classList.add('substitute');
+                                    label.textContent = 'Substitute';
+                                }
+                            }
+                        });
+                    }
+
+                    // Restore scores
+                    if (data.scores) {
+                        for (let i = 1; i <= 3; i++) {
+                            if (data.scores[`set${i}`]) {
+                                document.getElementById(`set${i}-a`).value = data.scores[`set${i}`].a || 0;
+                                document.getElementById(`set${i}-b`).value = data.scores[`set${i}`].b || 0;
+                            }
+                        }
+                    }
+
+                    // Restore penalties
+                    if (data.penalties) {
+                        for (let i = 1; i <= 3; i++) {
+                            ['a', 'b', 'c', 'd'].forEach(player => {
+                                const key = `set${i}-${player}`;
+                                if (data.penalties[key] !== undefined) {
+                                    document.getElementById(`set${i}-penalty-${player}`).value = data.penalties[key];
+                                    // Show penalties section if any penalty is non-zero
+                                    if (data.penalties[key] !== 0) {
+                                        const penaltiesDiv = document.getElementById(`set${i}-penalties`);
+                                        if (penaltiesDiv.style.display === 'none') {
+                                            togglePenalties(i);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    // Update pairings after loading names
+                    updatePairings();
+                } catch (e) {
+                    console.error('Error loading from storage:', e);
+                }
+            }
+        }
+
+        // Save data to local storage
+        function saveToStorage() {
+            const data = {
+                framework: framework,
+                players: {
+                    a: document.getElementById('player-a-name').value,
+                    b: document.getElementById('player-b-name').value,
+                    c: document.getElementById('player-c-name').value,
+                    d: document.getElementById('player-d-name').value
+                },
+                attendance: { ...attendance },
+                scores: {
+                    set1: {
+                        a: parseInt(document.getElementById('set1-a').value) || 0,
+                        b: parseInt(document.getElementById('set1-b').value) || 0
+                    },
+                    set2: {
+                        a: parseInt(document.getElementById('set2-a').value) || 0,
+                        b: parseInt(document.getElementById('set2-b').value) || 0
+                    },
+                    set3: {
+                        a: parseInt(document.getElementById('set3-a').value) || 0,
+                        b: parseInt(document.getElementById('set3-b').value) || 0
+                    }
+                },
+                penalties: {}
+            };
+
+            // Save penalties
+            for (let i = 1; i <= 3; i++) {
+                ['a', 'b', 'c', 'd'].forEach(player => {
+                    const key = `set${i}-${player}`;
+                    data.penalties[key] = parseInt(document.getElementById(`set${i}-penalty-${player}`).value) || 0;
+                });
+            }
+
+            localStorage.setItem('padelCalculatorData', JSON.stringify(data));
+            console.log('Saved to storage:', data);
+        }
+
+        function selectFramework(selected) {
+            framework = selected;
+            document.querySelectorAll('.framework-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            // Update framework info based on current language
+            const info = document.getElementById('framework-info');
+            if (selected === 'normal') {
+                info.innerHTML = translations[currentLanguage].normalInfo;
+            } else {
+                info.innerHTML = translations[currentLanguage].balancedInfo;
+            }
+            clearResults();
+            saveToStorage();
+        }
+
+        function toggleAttendance(player) {
+            const switchElem = document.getElementById(`switch-${player}`);
+            const label = document.getElementById(`label-${player}`);
+
+            if (attendance[player] === 'attending') {
+                attendance[player] = 'substitute';
+                switchElem.classList.add('substitute');
+                label.classList.remove('attending');
+                label.classList.add('substitute');
+                label.textContent = 'Substitute';
+            } else {
+                attendance[player] = 'attending';
+                switchElem.classList.remove('substitute');
+                label.classList.remove('substitute');
+                label.classList.add('attending');
+                label.textContent = 'Attending';
+            }
+            clearResults();
+            saveToStorage();
+        }
+
+        function updatePairings() {
+            const names = {
+                a: document.getElementById('player-a-name').value || 'Player A',
+                b: document.getElementById('player-b-name').value || 'Player B',
+                c: document.getElementById('player-c-name').value || 'Player C',
+                d: document.getElementById('player-d-name').value || 'Player D'
+            };
+
+            // Update pairing labels with & and line break
+            document.getElementById('set1-pair-a').innerHTML = `${names.a}<br>&<br>${names.b}`;
+            document.getElementById('set1-pair-b').innerHTML = `${names.c}<br>&<br>${names.d}`;
+
+            document.getElementById('set2-pair-a').innerHTML = `${names.a}<br>&<br>${names.c}`;
+            document.getElementById('set2-pair-b').innerHTML = `${names.b}<br>&<br>${names.d}`;
+
+            document.getElementById('set3-pair-a').innerHTML = `${names.a}<br>&<br>${names.d}`;
+            document.getElementById('set3-pair-b').innerHTML = `${names.b}<br>&<br>${names.c}`;
+
+            // Update penalty labels
+            ['1', '2', '3'].forEach(setNum => {
+                document.getElementById(`set${setNum}-penalty-label-a`).textContent = names.a;
+                document.getElementById(`set${setNum}-penalty-label-b`).textContent = names.b;
+                document.getElementById(`set${setNum}-penalty-label-c`).textContent = names.c;
+                document.getElementById(`set${setNum}-penalty-label-d`).textContent = names.d;
+            });
+        }
+
+        // Update pairings when names change
+        document.querySelectorAll('.player-name-input').forEach(input => {
+            input.addEventListener('input', () => {
+                updatePairings();
+                saveToStorage();
+            });
+        });
+
+        // Save when scores change
+        document.querySelectorAll('.score-input').forEach(input => {
+            input.addEventListener('input', saveToStorage);
+        });
+
+        // Load saved data on page load
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', () => {
+                loadFromStorage();
+                initializeLanguage();
+            });
+        } else {
+            // DOM is already loaded
+            loadFromStorage();
+            initializeLanguage();
+        }
+
+        function initializeLanguage() {
+            const savedLang = localStorage.getItem('padelLanguage') || 'es';
+            setLanguage(savedLang);
+
+            // Attach clearResults to all penalty inputs
+            document.querySelectorAll('[id^="set"][id*="-penalty-"]').forEach(input => {
+                input.addEventListener('input', clearResults);
+            });
+        }
+
+        function togglePenalties(setNum) {
+            const penaltiesDiv = document.getElementById(`set${setNum}-penalties`);
+            const button = event ? event.target : document.querySelector(`button[onclick="togglePenalties(${setNum})"]`);
+            const scoreInputA = document.getElementById(`set${setNum}-a`);
+            const scoreInputB = document.getElementById(`set${setNum}-b`);
+
+            if (penaltiesDiv.style.display === 'none') {
+                penaltiesDiv.style.display = 'block';
+                if (button) {
+                    button.textContent = translations[currentLanguage].removePenalties;
+                    button.style.background = '#ef4444';
+                }
+
+                // Gray out and disable score inputs, set to 0-0
+                scoreInputA.value = 0;
+                scoreInputB.value = 0;
+                scoreInputA.disabled = true;
+                scoreInputB.disabled = true;
+                scoreInputA.style.background = '#e5e7eb';
+                scoreInputB.style.background = '#e5e7eb';
+                scoreInputA.style.color = '#9ca3af';
+                scoreInputB.style.color = '#9ca3af';
+            } else {
+                penaltiesDiv.style.display = 'none';
+                if (button) {
+                    button.textContent = translations[currentLanguage].addPenalties;
+                    button.style.background = '#667eea';
+                }
+
+                // Re-enable score inputs
+                scoreInputA.disabled = false;
+                scoreInputB.disabled = false;
+                scoreInputA.style.background = '';
+                scoreInputB.style.background = '';
+                scoreInputA.style.color = '';
+                scoreInputB.style.color = '';
+
+                // Reset penalty values when hiding
+                ['a', 'b', 'c', 'd'].forEach(player => {
+                    document.getElementById(`set${setNum}-penalty-${player}`).value = 0;
+                });
+                saveToStorage();
+            }
+        }
+
+        function validateSetScore(gamesA, gamesB) {
+            const t = translations[currentLanguage];
+            if (gamesA < 0 || gamesB < 0 || gamesA > 7 || gamesB > 7) {
+                return { valid: false, error: t.errorGamesBetween };
+            }
+            if (gamesA === 6 && gamesB === 6) {
+                return { valid: false, error: t.error66NotAllowed };
+            }
+            if (gamesA === 7 && gamesB === 7) {
+                return { valid: false, error: t.error77NotAllowed };
+            }
+            // Valid scores: winner must have 6 or 7, and difference must be valid
+            // 6-0 to 6-4, 7-5, 7-6 are valid
+            // 7-0 to 7-4 are invalid (should have won at 6)
+            const maxScore = Math.max(gamesA, gamesB);
+            const minScore = Math.min(gamesA, gamesB);
+            const diff = maxScore - minScore;
+
+            if (maxScore === 7) {
+                // For 7-x scores, only 7-5 and 7-6 are valid
+                if (minScore < 5) {
+                    return { valid: false, error: t.errorInvalidSevenScore };
+                }
+            }
+
+            return { valid: true };
+        }
+
+        function calculateNormalPoints(sets) {
+            const points = { a: 0, b: 0, c: 0, d: 0 };
+            const setsWon = { a: 0, b: 0, c: 0, d: 0 };
+
+            // Set 1: A+B vs C+D
+            const diff1 = Math.abs(sets[0].a - sets[0].b);
+            if (sets[0].a > sets[0].b) {
+                points.a += diff1; points.b += diff1;
+                points.c -= diff1; points.d -= diff1;
+                setsWon.a++; setsWon.b++;
+            } else {
+                points.c += diff1; points.d += diff1;
+                points.a -= diff1; points.b -= diff1;
+                setsWon.c++; setsWon.d++;
+            }
+
+            // Set 2: A+C vs B+D
+            const diff2 = Math.abs(sets[1].a - sets[1].b);
+            if (sets[1].a > sets[1].b) {
+                points.a += diff2; points.c += diff2;
+                points.b -= diff2; points.d -= diff2;
+                setsWon.a++; setsWon.c++;
+            } else {
+                points.b += diff2; points.d += diff2;
+                points.a -= diff2; points.c -= diff2;
+                setsWon.b++; setsWon.d++;
+            }
+
+            // Set 3: A+D vs B+C
+            const diff3 = Math.abs(sets[2].a - sets[2].b);
+            if (sets[2].a > sets[2].b) {
+                points.a += diff3; points.d += diff3;
+                points.b -= diff3; points.c -= diff3;
+                setsWon.a++; setsWon.d++;
+            } else {
+                points.b += diff3; points.c += diff3;
+                points.a -= diff3; points.d -= diff3;
+                setsWon.b++; setsWon.c++;
+            }
+
+            return { points, setsWon };
+        }
+
+        function clearResults() {
+            const container = document.getElementById('results-container');
+            // Early exit if container doesn't exist or is already empty
+            if (!container || container.innerHTML === '') {
+                return;
+            }
+            container.innerHTML = '';
+        }
+
+        function calculateResults() {
+            const sets = [
+                {
+                    a: parseInt(document.getElementById('set1-a').value) || 0,
+                    b: parseInt(document.getElementById('set1-b').value) || 0
+                },
+                {
+                    a: parseInt(document.getElementById('set2-a').value) || 0,
+                    b: parseInt(document.getElementById('set2-b').value) || 0
+                },
+                {
+                    a: parseInt(document.getElementById('set3-a').value) || 0,
+                    b: parseInt(document.getElementById('set3-b').value) || 0
+                }
+            ];
+
+            // Validate all sets
+            const t = translations[currentLanguage];
+            for (let i = 0; i < sets.length; i++) {
+                const validation = validateSetScore(sets[i].a, sets[i].b);
+                if (!validation.valid) {
+                    showError(`${t.set} ${i + 1}: ${validation.error}`);
+                    return;
+                }
+            }
+
+            // Validate manual penalties sum to 0 in each set
+            const penaltyWarnings = [];
+            for (let i = 1; i <= 3; i++) {
+                const setSum = ['a', 'b', 'c', 'd'].reduce((sum, player) => {
+                    const penalty = parseInt(document.getElementById(`set${i}-penalty-${player}`).value) || 0;
+                    return sum + penalty;
+                }, 0);
+
+                if (setSum !== 0) {
+                    const warningMsg = t.penaltySumWarning.replace('{set}', i).replace('{sum}', setSum);
+                    penaltyWarnings.push(warningMsg);
+                }
+            }
+
+            if (penaltyWarnings.length > 0) {
+                showWarning(penaltyWarnings.join('<br>'));
+            }
+
+            const { points: normalPoints, setsWon } = calculateNormalPoints(sets);
+
+            // Apply manual penalties from each set
+            const penalties = { a: 0, b: 0, c: 0, d: 0 };
+
+            // Add manual penalties from each set
+            ['a', 'b', 'c', 'd'].forEach(player => {
+                const set1Penalty = parseInt(document.getElementById(`set1-penalty-${player}`).value) || 0;
+                const set2Penalty = parseInt(document.getElementById(`set2-penalty-${player}`).value) || 0;
+                const set3Penalty = parseInt(document.getElementById(`set3-penalty-${player}`).value) || 0;
+                penalties[player] += set1Penalty + set2Penalty + set3Penalty;
+            });
+
+            // Calculate week totals
+            const weekTotals = {};
+            ['a', 'b', 'c', 'd'].forEach(player => {
+                weekTotals[player] = normalPoints[player] + penalties[player];
+            });
+
+            // Rank players (by week total, tie-breaker by entering rank)
+            const players = ['a', 'b', 'c', 'd'].map((id, index) => ({
+                id,
+                name: document.getElementById(`player-${id}-name`).value || id.toUpperCase(),
+                normalPoints: normalPoints[id],
+                penalty: penalties[id],
+                weekTotal: weekTotals[id],
+                setsWon: setsWon[id],
+                enteringRank: index + 1,
+                usedSub: attendance[id] === 'substitute'
+            }));
+
+            // Sort: attendees first (by week total), then substitute users (by week total)
+            players.sort((a, b) => {
+                // Attendees always rank higher than substitute users
+                if (a.usedSub && !b.usedSub) return 1;
+                if (!a.usedSub && b.usedSub) return -1;
+
+                // Within same group, sort by week total (desc), then by entering rank (asc)
+                if (b.weekTotal !== a.weekTotal) {
+                    return b.weekTotal - a.weekTotal;
+                }
+                return a.enteringRank - b.enteringRank;
+            });
+
+            // Assign placements and balanced points
+            const balancedBase = [3, 2, 1, 0];
+            players.forEach((player, index) => {
+                player.placement = index + 1;
+                player.balancedPoints = balancedBase[index];
+
+                // Clean sweep bonus (won all 3 sets AND didn't use substitute)
+                if (player.setsWon === 3 && !player.usedSub) {
+                    player.balancedPoints += 1;
+                    player.cleanSweep = true;
+                }
+            });
+
+            // Determine movements (for display purposes)
+            const movements = determineMovements(players);
+
+            // Display results
+            displayResults(players, movements);
+        }
+
+        function determineMovements(players) {
+            const movements = [];
+
+            // Find substitute users and attendees
+            const subUsers = players.filter(p => p.usedSub);
+            const attendees = players.filter(p => !p.usedSub);
+
+            // Mark substitute users - last one moves down, others just flagged
+            if (subUsers.length > 0) {
+                // Find the last substitute user (already sorted, so it's the last in the subUsers array)
+                const lastSubUser = subUsers[subUsers.length - 1];
+
+                subUsers.forEach(player => {
+                    if (player.id === lastSubUser.id) {
+                        // Last substitute user moves down
+                        movements.push({
+                            player: player,
+                            direction: 'down',
+                            reasonKey: 'usedSubstitute'
+                        });
+                    } else {
+                        // Other substitute users just flagged
+                        movements.push({
+                            player: player,
+                            direction: 'substitute',
+                            reasonKey: 'usedSubstitute'
+                        });
+                    }
+                });
+            }
+
+            // Top attendee moves up if there are attendees
+            if (attendees.length > 0) {
+                const topAttendee = attendees[0];
+                movements.push({
+                    player: topAttendee,
+                    direction: 'up',
+                    reasonKey: 'weeklyWinner'
+                });
+            }
+
+            // Bottom attendee moves down if there are attendees and no substitutes
+            if (attendees.length > 0 && subUsers.length === 0) {
+                const bottomAttendee = attendees[attendees.length - 1];
+                movements.push({
+                    player: bottomAttendee,
+                    direction: 'down',
+                    reasonKey: 'weeklyBottom'
+                });
+            }
+
+            return movements;
+        }
+
+        function displayResults(players, movements) {
+            const container = document.getElementById('results-container');
+            const t = translations[currentLanguage];
+
+            const movementMap = new Map(movements.map(m => [m.player.id, m]));
+
+            let html = `<div class="results"><div class="section-title">${t.results}</div>`;
+            html += '<div class="results-grid">';
+
+            players.forEach(player => {
+                const movement = movementMap.get(player.id);
+                const isWinner = player.placement === 1 && !player.usedSub;
+                // Mark substitute users as losers (red) OR actual loser if no substitutes
+                const isLoser = player.usedSub || (!player.usedSub && player.placement === 4);
+                const cardClass = isWinner ? 'winner' : (isLoser ? 'loser' : '');
+
+                html += `<div class="result-card ${cardClass}">`;
+                html += `<div class="result-name">${player.name}</div>`;
+                html += `<div class="result-placement">${getOrdinal(player.placement)} ${t.place}</div>`;
+
+                if (framework === 'normal') {
+                    html += `<div class="points-row"><span>${t.normalPointsLabel}</span><strong>${player.normalPoints}</strong></div>`;
+                    if (player.penalty !== 0) {
+                        html += `<div class="points-row"><span>${t.penalty}</span><strong>${player.penalty}</strong></div>`;
+                    }
+                    html += `<div class="points-row"><span>${t.weekTotal}</span><strong>${player.weekTotal}</strong></div>`;
+                } else {
+                    html += `<div class="points-row"><span>${t.balancedPointsLabel}</span><strong>${player.balancedPoints}</strong></div>`;
+                    html += `<div class="points-row"><span>${t.setsWon}</span><strong>${player.setsWon}/3</strong></div>`;
+                    if (player.cleanSweep) {
+                        html += `<div class="points-row"><span>${t.cleanSweepBonus}</span><strong>+1</strong></div>`;
+                    }
+                }
+
+                if (movement) {
+                    if (movement.direction === 'substitute') {
+                        // Show "used substitute" flag without arrows (gray)
+                        html += `<div class="movement none">${t[movement.reasonKey]}</div>`;
+                    } else if (movement.direction === 'down' && player.usedSub) {
+                        // Substitute user moving down - show down arrow with "used substitute"
+                        html += `<div class="movement down">↓ ${t[movement.reasonKey]}</div>`;
+                    } else if (movement.direction === 'down' && !player.usedSub) {
+                        // Attendee moving down - show down arrow with "weekly bottom"
+                        html += `<div class="movement down">↓ ${t.weeklyBottom}</div>`;
+                    } else if (movement.direction === 'up') {
+                        // Moving up - show up arrow with reason
+                        html += `<div class="movement up">↑ ${t[movement.reasonKey]}</div>`;
+                    }
+                } else {
+                    html += `<div class="movement none">${t.noMovement}</div>`;
+                }
+
+                html += '</div>';
+            });
+
+            html += '</div>';
+
+            // Add substitute penalties section if any player used substitute
+            const subsUsers = players.filter(p => p.usedSub);
+            if (subsUsers.length > 0) {
+                html += `<div class="section" style="margin-top: 24px;">`;
+                html += `<div class="section-title">${t.substitutePenaltiesTitle}</div>`;
+                html += `<div class="info" style="margin-bottom: 16px;">${t.substitutePenaltiesInfo}</div>`;
+                html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">`;
+
+                subsUsers.forEach(player => {
+                    html += `<div style="padding: 12px; background: #f9f9f9; border-radius: 8px; border: 1px solid #e0e0e0;">`;
+                    html += `<label style="display: block; margin-bottom: 8px; font-weight: 500;">${player.name}</label>`;
+                    html += `<input type="number" id="sub-penalty-${player.id}" class="score-input" value="0" style="width: 100%;">`;
+                    html += `</div>`;
+                });
+
+                html += `</div>`;
+                html += `<button onclick="applySubstitutePenalties()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600;">${t.applyPenalties}</button>`;
+                html += `</div>`;
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function showError(message) {
+            const container = document.getElementById('results-container');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function showWarning(message) {
+            const container = document.getElementById('results-container');
+            const t = translations[currentLanguage];
+            const warning = `<div class="warning"><strong>${t.warningTitle}</strong><br>${message}</div>`;
+            // Prepend warning to any existing content
+            const existingContent = container.innerHTML;
+            container.innerHTML = warning + existingContent;
+        }
+
+        function getOrdinal(n) {
+            const t = translations[currentLanguage];
+            const s = [t.th, t.st, t.nd, t.rd];
+            const v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        }
+
+        function applySubstitutePenalties() {
+            // Get all substitute penalty values
+            const subPenalties = {};
+            ['a', 'b', 'c', 'd'].forEach(player => {
+                const input = document.getElementById(`sub-penalty-${player}`);
+                if (input) {
+                    subPenalties[player] = parseInt(input.value) || 0;
+                }
+            });
+
+            // Add substitute penalties to set penalties
+            ['a', 'b', 'c', 'd'].forEach(player => {
+                if (subPenalties[player]) {
+                    // Add to set 1 penalties for simplicity
+                    const currentPenalty = parseInt(document.getElementById(`set1-penalty-${player}`).value) || 0;
+                    document.getElementById(`set1-penalty-${player}`).value = currentPenalty + subPenalties[player];
+                }
+            });
+
+            // Recalculate results
+            calculateResults();
+        }
+
+        // Initialize pairings
+        updatePairings();
+    </script>
+</body>
+</html>
